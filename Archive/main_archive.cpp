@@ -243,7 +243,7 @@ class MenuBox
 class Menu
 {
     public:
-    Button Buttontest;
+    Button MenuButton;
     MenuBox MenuBackground;
 
     Menu()
@@ -254,7 +254,7 @@ class Menu
     void draw(sf::RenderWindow &window)
     {
         window.draw(MenuBackground.Box);
-        window.draw(*Buttontest.spriteButton);
+        window.draw(*MenuButton.spriteButton);
     }
 
     void update(Character &bird, PillarPool &pool)
@@ -352,7 +352,7 @@ int main()
         ScoreBoard.setString(num);
         Bird.collision(pillarPool);
         Bird.counter(pillarPool);
-        gameMenu.Buttontest.onClick(window, Bird, pillarPool, spawnClock);
+        gameMenu.MenuButton.onClick(window, Bird, pillarPool, spawnClock);
         window.display();
     }
 }

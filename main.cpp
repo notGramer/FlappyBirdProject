@@ -236,7 +236,7 @@ class Button
         Bounds = spriteButton->getGlobalBounds();
     }
 
-    void restart()
+    void GameOver()
     {
 
     if (!textureGameOver.loadFromMemory(Sprites_game_over_png, Sprites_game_over_png_len))
@@ -265,53 +265,56 @@ class Button
     }   
 };
 
-class MenuBox
-{
-    public:
-    float x = 200.f, y = 200.f;
-    sf::RectangleShape Box;
-
-    sf::RectangleShape MenuBackground()
-    {
-        Box.setSize({500.f, 500.f});
-        Box.setPosition({x,y});
-        Box.setOutlineColor(sf::Color(0,0,0));
-        Box.setFillColor(sf::Color(255, 255, 255));
-        Box.setOutlineThickness(2.f);
-        return Box;
-    }
-
-};
 
 class Menu
 {
     public:
-    Button Buttontest;
-    MenuBox MenuBackground;
+    Button MenuButton;
+    sf::RectangleShape *Box;
+    bool MenuOpen = false;
+
 
     Menu()
     {
-
+        Box = new sf::RectangleShape();        
+        Box->setSize({500.f, 800.f});
+        Box->setPosition({250.f,100.f});
+        Box->setOutlineColor(sf::Color::Black);
+        Box->setFillColor(sf::Color::White);
+        Box->setOutlineThickness(2.f);
     }
+
 
     void draw(sf::RenderWindow &window)
     {
-        window.draw(MenuBackground.Box);
-        window.draw(*Buttontest.spriteButton);
+        if(isPaused)
+        {
+            window.draw(*Box);
+        }
+        
+        
     }
 
-    void update(Character &bird, PillarPool &pool)
+    void update(sf::RenderWindow &window, Character &bird, PillarPool &pool)
     {
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::M) && !isPaused)
-        isPaused = true;
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C) && isPaused)
-        isPaused = false;
-    }
+        window.draw(*MenuButton.spriteButton);
+
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape) && !isPaused && !MenuOpen)
+        {
+            isPaused = true;
+            MenuOpen = true;
+            window.draw(*Box);
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape) && isPaused)
+            isPaused = false;
+            MenuOpen = false;
+        }
 };
 
 void Exit()
 {
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
     {
         exit(0);
     }
@@ -396,7 +399,7 @@ int main()
 
         pillarPool.draw(window);
         gameMenu.draw(window);
-        gameMenu.update(Bird, pillarPool);
+        gameMenu.update(window, Bird, pillarPool);
         ScoreBoard.setString(num);
         Bird.collision(pillarPool);
         Bird.counter(pillarPool);
@@ -411,7 +414,7 @@ int main()
         Bird.drawDebug(window, pillarPool);
         }
 
-        gameMenu.Buttontest.onClick(window, Bird, pillarPool, spawnClock);
+        gameMenu.MenuButton.onClick(window, Bird, pillarPool, spawnClock);
         window.display();
     }
 }
