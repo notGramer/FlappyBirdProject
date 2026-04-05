@@ -26,7 +26,17 @@ bool isPaused = false;
 int i = 0;
 string num = to_string(i);
 bool restart = false;
-
+bool debugColl = true;
+// Pillar
+int PillarBoundPosX = 7;
+int PillarBoundPosY = 8;
+int PillarBoundSizeX = 15;
+int PillarBoundSizeY= 10;
+// Bird
+int BirdBoundPosX = 40;
+int BirdBoundPosY = 20;
+int BirdBoundSizeX = 70;
+int BirdBoundSizeY = 85;
 
 class Pillar
 {
@@ -56,7 +66,6 @@ class Pillar
     {
         spritePillar->move({pillarMovement, 0.0f});
     }
-
 };
 
 class PillarPool
@@ -100,6 +109,24 @@ class PillarPool
         pillars.clear();
     }
 
+    void drawDebug(sf::RenderWindow &window)
+    {
+        for (Pillar* pillar : pillars)  // ← loop through each pillar
+        {
+            sf::FloatRect bounds = pillar->spritePillar->getGlobalBounds();  // ← get THIS pillar's bounds
+            bounds = sf::FloatRect(
+                {bounds.position.x + PillarBoundPosX, bounds.position.y + PillarBoundPosY},
+                {bounds.size.x - PillarBoundSizeX, bounds.size.y - PillarBoundSizeY}
+            );
+
+            sf::RectangleShape box({bounds.size.x, bounds.size.y});
+            box.setPosition(bounds.position);
+            box.setFillColor(sf::Color::Transparent);
+            box.setOutlineColor(sf::Color::Blue);
+            box.setOutlineThickness(2.f);
+            window.draw(box);
+        }
+    }
 };
 
 class Character
@@ -110,31 +137,31 @@ class Character
 
     Character()
     {
-        if (!texture.loadFromMemory(Sprites_flappy_png, Sprites_flappy_png_len))
-        {
-            cerr << "Failed to load texture: flappy.png" << std::endl;
-            exit(1);
-        }
-        sprite = new sf::Sprite(texture);
-        sprite->setScale({.3f, .3f});
-        sprite->setPosition({50.0f,50.0f});
-        }
+    if (!texture.loadFromMemory(Sprites_flappy_png, Sprites_flappy_png_len))
+    {
+        cerr << "Failed to load texture: flappy.png" << std::endl;
+        exit(1);
+    }
+    sprite = new sf::Sprite(texture);
+    sprite->setScale({.3f, .3f});
+    sprite->setPosition({50.0f,50.0f});
+    }
 
-        void movementBird()
-        {
-            sprite->move({zero,gravity});
+    void movementBird()
+    {
+        sprite->move({zero,gravity});
 
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
-            {
-                sprite->move({zero, jump_force});
-            }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
+        {
+            sprite->move({zero, jump_force});
         }
+    }
     
     void collision(PillarPool &pool)
     {
         sf::FloatRect Bounds = sprite->getGlobalBounds();
-        Bounds = sf::FloatRect({Bounds.position.x + 10, Bounds.position.y + 10},
-                               {Bounds.size.x - 20, Bounds.size.y -20});
+        Bounds = sf::FloatRect({Bounds.position.x + BirdBoundPosX, Bounds.position.y + BirdBoundPosY},
+                               {Bounds.size.x - BirdBoundSizeX, Bounds.size.y - BirdBoundSizeY});
 
         
         for(Pillar* pillar : pool.pillars)
@@ -142,8 +169,8 @@ class Character
             sf::FloatRect pillarBounds = pillar->spritePillar->getGlobalBounds();
             pillarBounds = sf::FloatRect
             (
-                {pillarBounds.position.x + 20, pillarBounds.position.y + 20},
-                {pillarBounds.size.x - 40, pillarBounds.size.y -40}
+                {pillarBounds.position.x + PillarBoundPosX, pillarBounds.position.y + PillarBoundPosY},
+                {pillarBounds.size.x - PillarBoundSizeX, pillarBounds.size.y - PillarBoundSizeY}
             );
 
             if(Bounds.findIntersection(pillarBounds) || Bounds.position.y <= 0|| Bounds.position.y > windowsHight)
@@ -151,6 +178,21 @@ class Character
                 isPaused = true;
             }
         }
+    
+    }
+
+    void drawDebug(sf::RenderWindow &window, PillarPool &pool)
+    {
+        sf::FloatRect Bounds = sprite->getGlobalBounds();
+        Bounds = sf::FloatRect({Bounds.position.x + BirdBoundPosX, Bounds.position.y + BirdBoundPosY},
+                               {Bounds.size.x - BirdBoundSizeX, Bounds.size.y - BirdBoundSizeY});      
+                               
+        sf::RectangleShape birdBox({Bounds.size.x, Bounds.size.y});
+        birdBox.setPosition(Bounds.position);
+        birdBox.setFillColor({sf::Color::Transparent});
+        birdBox.setOutlineColor({sf::Color::Blue});
+        birdBox.setOutlineThickness(2.f);
+        window.draw(birdBox);
     }
 
     void counter(PillarPool &pool)
@@ -168,6 +210,7 @@ class Character
             }
         }
     }
+    
 };
 
 class Button
@@ -357,6 +400,17 @@ int main()
         ScoreBoard.setString(num);
         Bird.collision(pillarPool);
         Bird.counter(pillarPool);
+
+
+        // set !debugColl to turn debugging off
+        // set debugColl to turn debbugin on
+        // its just visual to know what where collides
+        if (debugColl)
+        {
+        pillarPool.drawDebug(window);
+        Bird.drawDebug(window, pillarPool);
+        }
+
         gameMenu.Buttontest.onClick(window, Bird, pillarPool, spawnClock);
         window.display();
     }
